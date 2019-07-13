@@ -8,6 +8,7 @@ import gtk.Main;
 import Window;
 
 void main(string[] args) {
+
   Main.init(args);
 
   int width = 800;

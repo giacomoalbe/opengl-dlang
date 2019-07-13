@@ -20,6 +20,9 @@
   "importPaths": [
     "../gtkd/include"
   ],
+  "lflags-posix": [
+    "-L/usr/local/lib"
+  ],
   "libs": [
     "gtkd-3",
     "GL"

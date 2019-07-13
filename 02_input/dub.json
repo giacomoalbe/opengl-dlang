@@ -3,7 +3,7 @@
     "giacomo"
   ],
   "copyright": "Copyright © 2019, giacomo",
-  "description": "A minimal OpenGL D Application",
+  "description": "A minimal D application.",
   "license": "GPL3",
   "name": "initgl",
   "dependencies": {
@@ -14,11 +14,13 @@
     "include/glcore.d",
 
     "source/Canvas.d",
-    "source/ShaderProgram.d",
     "source/Window.d"
   ],
   "importPaths": [
     "../gtkd/include"
+  ],
+  "lflags-posix": [
+    "-L/usr/local/lib"
   ],
   "libs": [
     "gtkd-3",
