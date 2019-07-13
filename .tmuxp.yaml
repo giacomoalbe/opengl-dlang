@@ -1,0 +1,11 @@
+session_name: OPENGL
+start_directory: ./
+windows:
+  - window_name: Code
+    panes:
+      - shell_command:
+        - vim
+  - window_name: Make
+    panes:
+      - shell_command:
+        - clear
