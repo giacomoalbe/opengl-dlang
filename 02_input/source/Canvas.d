@@ -160,7 +160,6 @@ class Canvas : GLArea {
 
     glBufferData(GL_ARRAY_BUFFER, this.vertices.length * float.sizeof, this.vertices.ptr, GL_STATIC_DRAW);
     glBindBuffer(GL_ARRAY_BUFFER, this.vbos[0]);
-
   }
 
   void generateGeomtry() {

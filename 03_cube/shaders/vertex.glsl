@@ -3,5 +3,5 @@
 in vec4 vPosition;
 
 void main() {
-  gl_Position = vPosition;
+  gl_Position = 0.5 * vPosition;
 }

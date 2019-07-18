@@ -18,12 +18,41 @@ import imaged;
 
 import ShaderProgram;
 
+struct Triangle {
+  vec4[] vertices;
+  vec3 color;
+}
+
 class Canvas : GLArea {
   GLuint[] vaos, vbos;
   ShaderProgram shaderProgram;
   int width, height;
 
   float[] vertices;
+
+  Triangle[] triangles;
+
+  vec4[] points = [
+    vec4(-0.5,-0.5,0.5,0.5),
+    vec4(-0.5,0.5,0.5,0.5),
+    vec4(0.5,0.5,0.5,0.5),
+    vec4(0.5,-0.5,0.5,0.5),
+    vec4(-0.5,-0.5,-0.5,0.5),
+    vec4(-0.5,0.5,-0.5,0.5),
+    vec4(0.5,0.5,-0.5,0.5),
+    vec4(0.5,-0.5,-0.5,0.5)
+  ];
+
+  vec3[] mainColors = [
+    vec3(1.0f, 0, 0),
+    vec3(0, 1.0f, 0),
+    vec3(0, 0, 1.0f),
+    vec3(1.0f, 1.0f, 0),
+    vec3(0, 1.0f, 1.0f),
+    vec3(1.0f, 0, 1.0f),
+  ];
+
+  vec4[] colors, cubePoints;
 
   this() {
     setAutoRender(true);
@@ -84,20 +113,60 @@ class Canvas : GLArea {
 
   void drawCanvas() {
     glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT);
-    glBindVertexArray(this.vaos[0]);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    this.linkGeometry();
 
     this.shaderProgram.use();
 
-    glDrawArrays(GL_TRIANGLES, 0, 3);
+    foreach(i, Triangle tris; triangles) {
+      this.shaderProgram.setFloat("color", [tris.color.r, tris.color.g, tris.color.b]);
+      glDrawArrays(GL_TRIANGLES, to!int(3 * i), 3);
+    }
+  }
+
+  void tris(int a, int b, int c, vec3 color) {
+    Triangle newTris;
+
+    newTris.color = color;
+    newTris.vertices ~= points[a];
+    newTris.vertices ~= points[b];
+    newTris.vertices ~= points[c];
+
+    triangles ~= newTris;
+  }
+
+  void quad(int a, int b, int c, int d, vec3 color) {
+    tris(a, b, c, color);
+    tris(a, c, d, color);
+  }
+
+  void generateColorCube() {
+    quad(0,3,2,1, mainColors[0]);
+    quad(2,3,7,6, mainColors[1]);
+    quad(3,0,4,7, mainColors[2]);
+    quad(1,2,6,5, mainColors[3]);
+    quad(4,5,6,7, mainColors[4]);
+    quad(5,4,0,1, mainColors[5]);
   }
 
   void generateGeomtry() {
-    this.vertices = [
-      0.0f, 0.5f,
-      0.5f, -0.5f,
-      -0.5f, -0.5f,
-    ];
+    generateColorCube();
+  }
+
+  void linkGeometry() {
+    this.vertices = [];
+
+    foreach(Triangle tris; triangles) {
+      foreach(vec4 vertex; tris.vertices) {
+        vertices ~= vertex.x;
+        vertices ~= vertex.y;
+        vertices ~= vertex.z;
+      }
+    }
+
+    glBufferData(GL_ARRAY_BUFFER, this.vertices.length * float.sizeof, this.vertices.ptr, GL_STATIC_DRAW);
+    glBindBuffer(GL_ARRAY_BUFFER, this.vbos[0]);
   }
 
   void initGraphics() {
@@ -122,7 +191,7 @@ class Canvas : GLArea {
 
     GLuint loc = glGetAttribLocation(this.shaderProgram.id, "vPosition");
     glEnableVertexAttribArray(loc);
-    glVertexAttribPointer(loc, 2, GL_FLOAT, GL_FALSE, 0, cast(void*) 0);
+    glVertexAttribPointer(loc, 3, GL_FLOAT, GL_FALSE, 0, cast(void*) 0);
 
     glBindBuffer(GL_ARRAY_BUFFER, this.vbos[0]);
     glBindVertexArray(this.vaos[0]);
