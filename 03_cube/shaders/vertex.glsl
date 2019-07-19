@@ -2,6 +2,8 @@
 
 in vec4 vPosition;
 
+uniform mat4 rotation;
+
 void main() {
-  gl_Position = 0.5 * vPosition;
+  gl_Position = rotation * vPosition;
 }

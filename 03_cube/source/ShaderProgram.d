@@ -115,6 +115,14 @@ class ShaderProgram {
     }
   }
 
+  void setMatrix(string uniformName, mat4 matrix) {
+    int uniformNameId = glGetUniformLocation(this.id, uniformName.toStringz);
+
+    if (uniformNameId > -1) {
+      glUniformMatrix4fv(uniformNameId, 1, GL_FALSE, matrix.value_ptr);
+    }
+  }
+
   void setInt(string uniformName, int value) {
     int uniformNameId = glGetUniformLocation(this.id, uniformName.toStringz);
 

@@ -12,6 +12,7 @@ import gdk.Event;
 
 import gtk.Widget;
 import gtk.GLArea;
+import glib.Timeout;
 
 import glcore;
 import imaged;
@@ -21,6 +22,18 @@ import ShaderProgram;
 struct Triangle {
   vec4[] vertices;
   vec3 color;
+}
+
+mat4 rotateZ(int degAngle) {
+  mat4 r = mat4.identity();
+
+  float radAngle = PI_180 * degAngle;
+
+  r[0][0] = cos(radAngle);
+  r[0][1] = r[1][0] = sin(radAngle);
+  r[1][1] = -r[0][0];
+
+  return r;
 }
 
 class Canvas : GLArea {
@@ -33,14 +46,14 @@ class Canvas : GLArea {
   Triangle[] triangles;
 
   vec4[] points = [
-    vec4(-0.5,-0.5,0.5,0.5),
-    vec4(-0.5,0.5,0.5,0.5),
-    vec4(0.5,0.5,0.5,0.5),
-    vec4(0.5,-0.5,0.5,0.5),
-    vec4(-0.5,-0.5,-0.5,0.5),
-    vec4(-0.5,0.5,-0.5,0.5),
-    vec4(0.5,0.5,-0.5,0.5),
-    vec4(0.5,-0.5,-0.5,0.5)
+    vec4(-0.5,-0.5,0.5,1),
+    vec4(-0.5,0.5,0.5,1),
+    vec4(0.5,0.5,0.5,1),
+    vec4(0.5,-0.5,0.5,1),
+    vec4(-0.5,-0.5,-0.5,1),
+    vec4(-0.5,0.5,-0.5,1),
+    vec4(0.5,0.5,-0.5,1),
+    vec4(0.5,-0.5,-0.5,1)
   ];
 
   vec3[] mainColors = [
@@ -53,8 +66,15 @@ class Canvas : GLArea {
   ];
 
   vec4[] colors, cubePoints;
+  Timeout timeout;
+  mat4 rotation;
+  int currentAngle;
 
   this() {
+    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_CULL_FACE);
+
+    setHasDepthBuffer(true);
     setAutoRender(true);
 
     setSizeRequest(300,300);
@@ -68,7 +88,21 @@ class Canvas : GLArea {
     addOnButtonPress(&click);
     addOnMotionNotify(&hover);
 
+    timeout = new Timeout(1000 / 60, &timeoutCallback);
+
+    rotation = mat4.xrotation(radians(45)) * mat4.yrotation(radians(60));
+
+    currentAngle = 0;
+
     showAll();
+  }
+
+  bool timeoutCallback() {
+    rotation = mat4.xrotation(radians(45)) * mat4.yrotation(radians(currentAngle));
+    currentAngle += 1;
+
+    this.queueDraw();
+    return true;
   }
 
   bool click(Event event, Widget widget) {
@@ -118,6 +152,8 @@ class Canvas : GLArea {
     this.linkGeometry();
 
     this.shaderProgram.use();
+
+    this.shaderProgram.setMatrix("rotation", this.rotation);
 
     foreach(i, Triangle tris; triangles) {
       this.shaderProgram.setFloat("color", [tris.color.r, tris.color.g, tris.color.b]);
